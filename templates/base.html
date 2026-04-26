@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ title | default('Panel') }}{% endblock %} • {{ branding.vpn_name }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { accent: "{{ branding.accent_color }}" }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: {{ branding.accent_color }}; }
+    body {
+      font-family: Manrope, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.35), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(34,197,94,.18), transparent 28%),
+        linear-gradient(135deg, #f4f7fb 0%, #edf4f1 42%, #eef2ff 100%);
+    }
+    .glass {
+      background: rgba(255,255,255,.62);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.55);
+      box-shadow: 0 20px 60px rgba(15,23,42,.08);
+    }
+    .glass-dark {
+      background: rgba(15,23,42,.68);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .text-accent { color: var(--accent); }
+    .bg-accent { background-color: var(--accent); }
+    .border-accent { border-color: var(--accent); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0f172a);
+      color: #fff;
+    }
+    .btn-primary:hover { filter: brightness(1.04); }
+    .nav-pill { transition: .2s ease; }
+    .nav-pill:hover { transform: translateY(-1px); }
+    input, textarea, select {
+      width: 100%;
+      border-radius: 1rem;
+      border: 1px solid rgba(255,255,255,.6);
+      background: rgba(255,255,255,.7);
+      padding: .75rem 1rem;
+      font-size: .875rem;
+      color: #0f172a;
+      outline: none;
+      transition: .15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #cbd5e1;
+      box-shadow: 0 0 0 2px #e2e8f0;
+    }
+    label span.lbl {
+      display: block;
+      margin-bottom: .5rem;
+      font-size: .875rem;
+      font-weight: 600;
+      color: #334155;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen text-slate-900">
+<div class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+
+  {% if show_nav is not defined or show_nav %}
+  {# Header / Nav #}
+  <div class="mb-6 glass rounded-[28px] p-5 sm:p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        {% if branding.logo_url %}
+          <img src="{{ branding.logo_url }}" alt="Logo" class="h-14 w-14 rounded-2xl object-cover shadow-lg">
+        {% else %}
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg"
+               style="background:linear-gradient(135deg,{{ branding.accent_color }},#0f172a)">VPN</div>
+        {% endif %}
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">VPN SaaS Panel</p>
+          <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">{% block page_title %}{{ title | default('Panel') }}{% endblock %}</h1>
+          {% if subtitle is defined and subtitle %}
+            <p class="mt-1 max-w-2xl text-sm text-slate-600">{{ subtitle }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% set current = request.endpoint %}
+        {% for item in [('dashboard','Dashboard'),('subscriptions','Subscriptions'),('plans','Plans'),('settings','Settings')] %}
+          {% if current == item[0] %}
+            <a class="nav-pill rounded-full px-4 py-2 text-sm font-semibold text-white shadow-md"
+               style="background:linear-gradient(135deg,{{ branding.accent_color }},#0f172a)"
+               href="{{ url_for(item[0]) }}">{{ item[1] }}</a>
+          {% else %}
+            <a class="nav-pill rounded-full px-4 py-2 text-sm font-semibold text-slate-700"
+               href="{{ url_for(item[0]) }}">{{ item[1] }}</a>
+          {% endif %}
+        {% endfor %}
+        <a class="nav-pill rounded-full px-4 py-2 text-sm font-semibold text-slate-700" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# Flash messages #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      {% if category == 'success' %}
+        <div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{{ message }}</div>
+      {% elif category == 'error' %}
+        <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{{ message }}</div>
+      {% else %}
+        <div class="mb-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-800">{{ message }}</div>
+      {% endif %}
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

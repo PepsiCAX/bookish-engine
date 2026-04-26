@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  {% if error %}
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{{ error }}</div>
+  {% endif %}
+
+  <div class="grid gap-6 xl:grid-cols-2">
+    <!-- Branding -->
+    <section class="glass rounded-[28px] p-6">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Branding</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-900">Public identity</h2>
+      </div>
+      <form method="post" enctype="multipart/form-data" class="space-y-4">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="save_branding">
+        <label><span class="lbl">VPN Name *</span>
+          <input type="text" name="vpn_name" value="{{ branding.vpn_name }}" required></label>
+        <label><span class="lbl">Description</span>
+          <textarea name="vpn_description" rows="3" placeholder="Short description of your VPN service">{{ branding.vpn_description }}</textarea></label>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label><span class="lbl">Logo URL</span>
+            <input type="url" name="logo_url" value="{{ branding.logo_url }}" placeholder="https://..."></label>
+          <label><span class="lbl">Accent Color</span>
+            <input type="text" name="accent_color" value="{{ branding.accent_color }}" placeholder="#22c55e"></label>
+        </div>
+        <label><span class="lbl">Upload Logo</span>
+          <input type="file" name="logo_file" accept=".png,.jpg,.jpeg,.webp,.gif"></label>
+        <button type="submit" class="btn-primary inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">Save Branding</button>
+      </form>
+    </section>
+
+    <!-- Servers -->
+    <section class="glass rounded-[28px] p-6">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Servers & Mapping</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-900">VPN server configuration</h2>
+      </div>
+      <form method="post" class="space-y-4">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="save_source">
+        <label class="flex items-center gap-3 mb-1">
+          <input type="checkbox" name="use_manual_servers" value="1" id="use_manual" onchange="toggleMode(this)" {{ 'checked' if use_manual else '' }}>
+          <span class="text-sm font-semibold text-slate-700">Use manual server list <span class="text-slate-400">(instead of remote URL)</span></span>
+        </label>
+        <div id="source_url_block" class="{{ '' if not use_manual else 'hidden' }}">
+          <label><span class="lbl">Source JSON URL</span>
+            <input type="url" name="json_source_url" value="{{ json_source_url }}" placeholder="https://tiagorrg.github.io/vless-checker/keys.json"></label>
+        </div>
+        <div id="manual_servers_block" class="{{ '' if use_manual else 'hidden' }}">
+        <label><span class="lbl">Server List <span class="text-slate-400">(one URI per line)</span></span>
+          <textarea name="manual_servers" rows="10" placeholder="vless://UUID@host:443?type=tcp&security=tls#🇩🇪 Германия">{{ manual_servers }}</textarea></label>
+        <div class="rounded-2xl bg-blue-50 border border-blue-200 px-4 py-3 text-xs text-blue-700">
+          <strong>Format:</strong> 4 regular servers (Germany, Netherlands, Sweden, Poland) + 1 LTE/Whitelist server.<br>
+          Each server is one URI per line. Replace <code>PLACEHOLDER_UUID</code> with real UUIDs.
+        </div>
+        </div>
+        <label><span class="lbl">Server Rename Mapping <span class="text-slate-400">(JSON object)</span></span>
+          <textarea name="server_renames" rows="5" placeholder='{"Old Name": "New Name"}'>{{ server_renames }}</textarea></label>
+        <label><span class="lbl">Default Response Format</span>
+          <select name="response_format">
+            <option value="happ" {{ 'selected' if response_format == 'happ' else '' }}>happ</option>
+            <option value="base64" {{ 'selected' if response_format == 'base64' else '' }}>base64</option>
+            <option value="list" {{ 'selected' if response_format == 'list' else '' }}>list</option>
+          </select></label>
+        <button type="submit" class="btn-primary inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">Save Server Settings</button>
+      </form>
+    </section>
+  </div>
+
+  <div class="grid gap-6 xl:grid-cols-2">
+    <!-- API Token -->
+    <section class="glass rounded-[28px] p-6">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">API Security</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-900">Rotate the API token</h2>
+      </div>
+      <form method="post" class="space-y-4">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="rotate_api_token">
+        <label><span class="lbl">New API Token <span class="text-slate-400">(min 16 chars)</span></span>
+          <input type="text" name="new_api_token" placeholder="At least 16 characters" autocomplete="off"></label>
+        <button type="submit" class="btn-primary inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">Rotate Token</button>
+      </form>
+    </section>
+
+    <!-- Deployment notes -->
+    <section class="glass rounded-[28px] p-6">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Deployment Notes</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-900">How the panel works</h2>
+      </div>
+      <ul class="space-y-3 text-sm text-slate-600">
+        <li>Servers are stored as manual URIs in the database. No external JSON source is fetched.</li>
+        <li>Use <code class="bg-white/70 rounded px-1">/subscription/{id}</code> for public subscription pages.</li>
+        <li>Use <code class="bg-white/70 rounded px-1">/api/*</code> for tokenized integrations (pass token via <code>Authorization: Bearer</code> header or <code>?token=</code>).</li>
+        <li>All subscription formats are supported: <code class="bg-white/70 rounded px-1">?format=happ</code>, <code class="bg-white/70 rounded px-1">?format=base64</code>, <code class="bg-white/70 rounded px-1">?format=list</code>, and more.</li>
+        <li>The profile header includes <code class="bg-white/70 rounded px-1"># announce: base64:...</code> with the subscription description encoded in Base64.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleMode(cb) {
+  document.getElementById('source_url_block').classList.toggle('hidden', cb.checked);
+  document.getElementById('manual_servers_block').classList.toggle('hidden', !cb.checked);
+}
+</script>
+{% endblock %}

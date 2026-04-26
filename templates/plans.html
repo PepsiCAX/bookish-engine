@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Plans{% endblock %}
+{% block page_title %}Plans{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  {% if error %}
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{{ error }}</div>
+  {% endif %}
+
+  <div class="grid gap-6 xl:grid-cols-2">
+    <!-- Form -->
+    <section class="glass rounded-[28px] p-6">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{{ 'Edit Plan' if editing else 'New Plan' }}</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-900">{{ 'Update plan details' if editing else 'Create a subscription plan' }}</h2>
+      </div>
+      <form method="post" class="space-y-4">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="{{ 'update' if editing else 'create' }}">
+        {% if editing %}
+          <input type="hidden" name="id" value="{{ form_values.id }}">
+        {% else %}
+          <label><span class="lbl">Plan ID <span class="text-slate-400">(optional)</span></span>
+            <input type="text" name="id" value="{{ form_values.id }}" placeholder="Auto-generated if blank"></label>
+        {% endif %}
+        <label><span class="lbl">Name *</span>
+          <input type="text" name="name" value="{{ form_values.name }}" required placeholder="Monthly Premium"></label>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label><span class="lbl">Duration (days) *</span>
+            <input type="number" name="duration_days" value="{{ form_values.duration_days }}" required min="1" placeholder="30"></label>
+          <label><span class="lbl">Price</span>
+            <input type="number" name="price" value="{{ form_values.price }}" step="0.01" min="0" placeholder="0.00"></label>
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" class="btn-primary inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">
+            {{ 'Update Plan' if editing else 'Create Plan' }}
+          </button>
+          {% if editing %}
+            <a href="{{ url_for('plans') }}" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm">Cancel</a>
+          {% endif %}
+        </div>
+      </form>
+    </section>
+
+    <!-- Plans list -->
+    <section class="glass rounded-[28px] p-6">
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">All Plans</p>
+        <h2 class="mt-2 text-xl font-extrabold text-slate-900">{{ plans | length }} plan{{ 's' if plans | length != 1 else '' }}</h2>
+      </div>
+      {% if plans %}
+        <div class="space-y-3">
+          {% for plan in plans %}
+            <div class="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3">
+              <div>
+                <p class="font-semibold text-slate-900">{{ plan.name }}</p>
+                <p class="text-xs text-slate-500 mt-1">{{ plan.duration_days }} days · ${{ "%.2f" | format(plan.price | float) }}</p>
+                <code class="text-xs text-slate-400">{{ plan.id }}</code>
+              </div>
+              <div class="flex items-center gap-2">
+                <a href="{{ url_for('plans', edit=plan.id) }}" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">Edit</a>
+                <form method="post" onsubmit="return confirm('Delete this plan?')">
+                  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="id" value="{{ plan.id }}">
+                  <button type="submit" class="rounded-xl bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700">Delete</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-slate-500">No plans yet. Create one to get started.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

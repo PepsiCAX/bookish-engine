@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% set show_nav = false %}
+{% block title %}Admin Login{% endblock %}
+{% block page_title %}Admin Login{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-md">
+  <section class="glass rounded-[28px] p-6 sm:p-8">
+    <div class="mb-6">
+      <p class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Admin Access</p>
+      <h2 class="mt-2 text-2xl font-extrabold text-slate-900">Sign in</h2>
+      <p class="mt-2 text-sm text-slate-600">Use the credentials created during setup. API access stays separate and token-based.</p>
+    </div>
+    {% if error %}
+      <div class="mb-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{{ error }}</div>
+    {% endif %}
+    <form method="post" class="space-y-5">
+      <label class="block">
+        <span class="lbl">Username</span>
+        <input type="text" name="username" required autofocus>
+      </label>
+      <label class="block">
+        <span class="lbl">Password</span>
+        <input type="password" name="password" required>
+      </label>
+      <button type="submit" class="btn-primary inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold shadow-lg">Login</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
