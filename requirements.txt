@@ -1,2 +1,12 @@
 flask>=3.0.0
 werkzeug>=3.0.0
+base64
+json
+os
+re
+secrets
+sqlite3
+time
+datetime
+functools
+typing
